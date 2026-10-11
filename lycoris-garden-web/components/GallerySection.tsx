@@ -143,19 +143,17 @@ export default function GallerySection() {
               <div className="relative w-full aspect-[4/3] sm:aspect-auto">
                 <img
                   src={img.url}
-                  alt={img.title}
+                  alt="Registro fotográfico Lycoris Garden"
                   className="w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
               </div>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 flex flex-col justify-end">
+              {/* Overlay limpo sem exibir o nome do arquivo */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 flex flex-col justify-end">
                 <span className="text-xs text-lycoris-400 font-medium">
-                  {img.vrchat_world || 'Lycoris Garden'}
+                  {img.vrchat_world || 'Lycoris Garden Sanctuary'}
                 </span>
-                <h3 className="font-serif text-lg font-bold text-white drop-shadow">
-                  {img.title}
-                </h3>
                 <p className="text-xs text-zinc-300 mt-0.5">
                   Por <span className="font-semibold text-zinc-100">{img.author}</span>
                 </p>
@@ -204,7 +202,7 @@ export default function GallerySection() {
             <div className="lg:w-7/12 bg-black flex items-center justify-center p-4 relative min-h-[300px] lg:min-h-[600px]">
               <img
                 src={activeImage.url}
-                alt={activeImage.title}
+                alt="Registro em tela cheia"
                 className="max-h-[80vh] w-auto max-w-full object-contain rounded-lg shadow-lg"
               />
             </div>
@@ -213,11 +211,8 @@ export default function GallerySection() {
               <div>
                 <div className="space-y-2 pb-4 border-b border-zinc-800">
                   <span className="text-xs uppercase tracking-wider text-lycoris-400 font-semibold">
-                    {activeImage.vrchat_world || 'Mundo VRChat'}
+                    {activeImage.vrchat_world || 'Lycoris Garden Sanctuary'}
                   </span>
-                  <h3 className="font-serif text-2xl font-bold text-white">
-                    {activeImage.title}
-                  </h3>
                   <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
                     <span className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-lycoris-500" />
