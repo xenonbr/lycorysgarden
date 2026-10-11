@@ -85,7 +85,7 @@ export default function AdminPage() {
         sessionStorage.setItem('lycoris_admin_auth', 'true');
         fetchDashboardData();
       } else {
-        setAuthError('Senha incorreta. Verifique o valor de ADMIN_PASSWORD no .env');
+        setAuthError('Senha incorreta.');
       }
     } catch (err) {
       setAuthError('Erro ao comunicar com o servidor');
