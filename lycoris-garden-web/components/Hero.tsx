@@ -40,15 +40,17 @@ export default function Hero() {
           </p>
         </div>
 
-        {/* Descrição da Comunidade */}
-        <p className="font-sans text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed font-normal">
-Instâncias com DJs
-Sorteios
-Eventos e atividades especiais
-Uma comunidade para conhecer pessoas e criar memórias
-
-Entre no jardim‚ e se torne um Lírio․
-        </p>
+       {/* Descrição da Comunidade */}
+        <div className="font-sans text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed font-normal space-y-2">
+          <p>• Instâncias com DJs</p>
+          <p>• Sorteios</p>
+          <p>• Eventos e atividades especiais</p>
+          <p>• Uma comunidade para conhecer pessoas e criar memórias</p>
+          
+          <p className="font-serif italic text-lycoris-300 pt-3 text-lg">
+            &ldquo;Entre no jardim, e se torne um Lírio.&rdquo;
+          </p>
+        </div>
 
         {/* Botões de Ação (CTAs) */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
