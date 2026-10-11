@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { INITIAL_GALLERY } from '@/lib/mockData';
 
 let localGallery = [...INITIAL_GALLERY];
 
 export async function GET() {
-  if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
+  const client = supabaseAdmin || supabase;
+  if (isSupabaseConfigured && client) {
+    const { data, error } = await client
       .from('gallery_images')
       .select('*, comments(*)')
       .order('created_at', { ascending: false });
@@ -22,8 +23,6 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
-    // Suporte para upload manual ou webhook externo (Google Drive/Cloudinary/Storage)
     const payload = body.data || body;
 
     if (!payload.url || !payload.title) {
@@ -40,8 +39,9 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
+    const client = supabaseAdmin || supabase;
+    if (isSupabaseConfigured && client) {
+      const { data, error } = await client
         .from('gallery_images')
         .insert([newImage])
         .select()
@@ -69,9 +69,15 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'ID da foto é obrigatório' }, { status: 400 });
     }
 
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('gallery_images').delete().eq('id', id);
+    const client = supabaseAdmin || supabase;
+    if (isSupabaseConfigured && client) {
+      // 1. Remove primeiro os comentários da foto para não travar na chave estrangeira
+      await client.from('comments').delete().eq('image_id', id);
+
+      // 2. Remove a imagem com privilégio administrativo (service_role)
+      const { error } = await client.from('gallery_images').delete().eq('id', id);
       if (error) {
+        console.error('Erro Supabase ao excluir foto:', error);
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
       return NextResponse.json({ success: true });
