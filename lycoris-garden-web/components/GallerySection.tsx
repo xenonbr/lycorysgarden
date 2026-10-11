@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Camera, MessageSquare, Heart, X, Send, User, Calendar, MapPin, Sparkles } from 'lucide-react';
+import { Camera, MessageSquare, Heart, X, Send, User } from 'lucide-react';
 import { GalleryImage, CommentItem } from '@/lib/types';
-import { INITIAL_GALLERY } from '@/lib/mockData';
 
 export default function GallerySection() {
-  const [images, setImages] = useState<GalleryImage[]>(INITIAL_GALLERY);
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState<GalleryImage | null>(null);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [authorName, setAuthorName] = useState('');
@@ -18,15 +17,18 @@ export default function GallerySection() {
   useEffect(() => {
     async function loadGallery() {
       try {
-        const res = await fetch('/api/gallery');
+        setLoading(true);
+        const res = await fetch('/api/gallery', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setImages(data);
           }
         }
       } catch (err) {
-        console.warn('Usando galeria offline/mock:', err);
+        console.warn('Erro ao carregar galeria:', err);
+      } finally {
+        setLoading(false);
       }
     }
     loadGallery();
@@ -37,15 +39,13 @@ export default function GallerySection() {
     setComments(img.comments || []);
 
     try {
-      const res = await fetch('/api/comments?imageId=' + img.id);
+      const res = await fetch('/api/comments?imageId=' + img.id, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) {
-          setComments(data);
-        }
+        if (Array.isArray(data)) setComments(data);
       }
     } catch (err) {
-      console.warn('Erro ao buscar comentários da imagem:', err);
+      console.warn('Erro ao carregar comentários:', err);
     }
   };
 
@@ -102,7 +102,6 @@ export default function GallerySection() {
 
   return (
     <section id="galeria" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10">
-      {/* Cabeçalho */}
       <div className="text-center space-y-4 mb-16">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lycoris-950/70 border border-lycoris-800/40 text-lycoris-400 text-xs font-semibold uppercase tracking-widest">
           <Camera className="w-3.5 h-3.5 text-lycoris-500" />
@@ -121,61 +120,70 @@ export default function GallerySection() {
         </p>
       </div>
 
-      {/* Grid Masonry Responsivo */}
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-        {images.map((img) => (
-          <div
-            key={img.id}
-            onClick={() => openLightbox(img)}
-            className="group relative cursor-pointer break-inside-avoid overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800/80 hover:border-lycoris-600/70 transition-all duration-300 hover:shadow-lycoris-glow hover:-translate-y-1"
-          >
-            {/* Imagem */}
-            <div className="relative w-full aspect-[4/3] sm:aspect-auto">
-              <img
-                src={img.url}
-                alt={img.title}
-                className="w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
-              />
-            </div>
+      {loading ? (
+        <div className="text-center py-16 text-xs text-zinc-500 animate-pulse">
+          Carregando memórias do santuário...
+        </div>
+      ) : images.length === 0 ? (
+        <div className="text-center py-16 px-6 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 max-w-lg mx-auto backdrop-blur-sm">
+          <Camera className="w-10 h-10 text-lycoris-500/60 mx-auto mb-3" />
+          <h3 className="font-serif text-lg font-bold text-white">Nenhuma foto publicada no momento</h3>
+          <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+            As capturas de tela e sessões fotográficas adicionadas no painel administrativo aparecerão aqui.
+          </p>
+        </div>
+      ) : (
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+          {images.map((img) => (
+            <div
+              key={img.id}
+              onClick={() => openLightbox(img)}
+              className="group relative cursor-pointer break-inside-avoid overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800/80 hover:border-lycoris-600/70 transition-all duration-300 hover:shadow-lycoris-glow hover:-translate-y-1"
+            >
+              <div className="relative w-full aspect-[4/3] sm:aspect-auto">
+                <img
+                  src={img.url}
+                  alt={img.title}
+                  className="w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
 
-            {/* Overlay Gradiente com Metadados */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 flex flex-col justify-end">
-              <span className="text-xs text-lycoris-400 font-medium">
-                {img.vrchat_world || 'Lycoris Garden'}
-              </span>
-              <h3 className="font-serif text-lg font-bold text-white drop-shadow">
-                {img.title}
-              </h3>
-              <p className="text-xs text-zinc-300 mt-0.5">
-                Por <span className="font-semibold text-zinc-100">{img.author}</span>
-              </p>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 flex flex-col justify-end">
+                <span className="text-xs text-lycoris-400 font-medium">
+                  {img.vrchat_world || 'Lycoris Garden'}
+                </span>
+                <h3 className="font-serif text-lg font-bold text-white drop-shadow">
+                  {img.title}
+                </h3>
+                <p className="text-xs text-zinc-300 mt-0.5">
+                  Por <span className="font-semibold text-zinc-100">{img.author}</span>
+                </p>
 
-              {/* Botões de Interação no Card */}
-              <div className="flex items-center justify-between pt-3 mt-2 border-t border-zinc-700/50">
-                <button
-                  onClick={(e) => handleLike(img.id, e)}
-                  className="flex items-center gap-1.5 text-xs text-zinc-300 hover:text-lycoris-400 transition-colors"
-                >
-                  <Heart
-                    className={`w-4 h-4 ${
-                      likedMap[img.id] ? 'fill-lycoris-500 text-lycoris-500' : 'text-zinc-400'
-                    }`}
-                  />
-                  <span>{img.likes}</span>
-                </button>
+                <div className="flex items-center justify-between pt-3 mt-2 border-t border-zinc-700/50">
+                  <button
+                    onClick={(e) => handleLike(img.id, e)}
+                    className="flex items-center gap-1.5 text-xs text-zinc-300 hover:text-lycoris-400 transition-colors"
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${
+                        likedMap[img.id] ? 'fill-lycoris-500 text-lycoris-500' : 'text-zinc-400'
+                      }`}
+                    />
+                    <span>{img.likes}</span>
+                  </button>
 
-                <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                  <MessageSquare className="w-4 h-4 text-zinc-400" />
-                  <span>{(img.comments && img.comments.length) || 0}</span>
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                    <MessageSquare className="w-4 h-4 text-zinc-400" />
+                    <span>{(img.comments && img.comments.length) || 0}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Lightbox Modal com Sistema de Comentários */}
       {activeImage && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 sm:p-6"
@@ -185,7 +193,6 @@ export default function GallerySection() {
             className="relative max-w-6xl w-full max-h-[90vh] bg-gothic-card rounded-2xl border border-lycoris-900/40 shadow-2xl overflow-hidden flex flex-col lg:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Botão Fechar */}
             <button
               onClick={closeLightbox}
               className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/60 hover:bg-black/90 text-zinc-300 hover:text-white transition-colors border border-zinc-700"
@@ -194,7 +201,6 @@ export default function GallerySection() {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Lado Esquerdo: Imagem em Tela Grande */}
             <div className="lg:w-7/12 bg-black flex items-center justify-center p-4 relative min-h-[300px] lg:min-h-[600px]">
               <img
                 src={activeImage.url}
@@ -203,10 +209,8 @@ export default function GallerySection() {
               />
             </div>
 
-            {/* Lado Direito: Informações & Seção de Comentários */}
             <div className="lg:w-5/12 p-6 flex flex-col justify-between bg-zinc-950 border-t lg:border-t-0 lg:border-l border-zinc-800/80 overflow-y-auto max-h-[85vh]">
               <div>
-                {/* Cabeçalho da Foto */}
                 <div className="space-y-2 pb-4 border-b border-zinc-800">
                   <span className="text-xs uppercase tracking-wider text-lycoris-400 font-semibold">
                     {activeImage.vrchat_world || 'Mundo VRChat'}
@@ -233,7 +237,6 @@ export default function GallerySection() {
                   </div>
                 </div>
 
-                {/* Lista de Comentários */}
                 <div className="pt-4 space-y-4">
                   <h4 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-lycoris-500" />
@@ -243,7 +246,7 @@ export default function GallerySection() {
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                     {comments.length === 0 ? (
                       <p className="text-xs text-zinc-500 italic py-4 text-center">
-                        Nenhum comentário ainda. Seja a primeira alma a registrar suas impressões!
+                        Nenhum comentário ainda. Deixe sua mensagem nesta memória!
                       </p>
                     ) : (
                       comments.map((comm) => (
@@ -268,7 +271,6 @@ export default function GallerySection() {
                 </div>
               </div>
 
-              {/* Formulário de Novo Comentário */}
               <form onSubmit={handleAddComment} className="pt-4 mt-4 border-t border-zinc-800/80 space-y-3">
                 <div className="space-y-2">
                   <input
