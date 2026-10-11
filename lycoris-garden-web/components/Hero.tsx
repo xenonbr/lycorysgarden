@@ -36,13 +36,18 @@ export default function Hero() {
             LYCORIS <span className="text-transparent bg-clip-text bg-gradient-to-r from-lycoris-400 via-lycoris-500 to-lycoris-700">GARDEN</span>
           </h1>
           <p className="font-serif italic text-lg sm:text-2xl text-gothic-gold font-light tracking-wide max-w-2xl mx-auto drop-shadow">
-            &ldquo;Mais do que plantas, criamos ambientes vivos.&rdquo;
+            &ldquo;Lycoris‚ um jardim onde a vida e a morte se encontram.&rdquo;
           </p>
         </div>
 
         {/* Descrição da Comunidade */}
         <p className="font-sans text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed font-normal">
-          Um refúgio noturno e místico para almas errantes no VRChat. Reúna-se conosco sob o luar carmesim para explorar mundos de atmosfera gótica, sessões de fotografia imersiva e conexões profundas.
+Instâncias com DJs
+Sorteios
+Eventos e atividades especiais
+Uma comunidade para conhecer pessoas e criar memórias
+
+Entre no jardim‚ e se torne um Lírio․
         </p>
 
         {/* Botões de Ação (CTAs) */}
