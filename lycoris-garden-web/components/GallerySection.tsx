@@ -129,7 +129,7 @@ export default function GallerySection() {
           <Camera className="w-10 h-10 text-lycoris-500/60 mx-auto mb-3" />
           <h3 className="font-serif text-lg font-bold text-white">Nenhuma foto publicada no momento</h3>
           <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-            As capturas de tela e sessões fotográficas adicionadas no painel administrativo aparecerão aqui.
+            As capturas adicionadas pelo painel administrativo aparecerão aqui.
           </p>
         </div>
       ) : (
