@@ -39,19 +39,19 @@ export default function HomePage() {
                 <div className="p-4 rounded-xl bg-black/40 border border-zinc-800">
                   <div className="flex items-center gap-2 text-lycoris-400 font-serif font-bold text-sm">
                     <Moon className="w-4 h-4 text-lycoris-500" />
-                    Atmosfera Noturna
+                    Atmosfera
                   </div>
                   <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-                    Instâncias selecionadas sob o luar, iluminação suave e trilhas sonoras imersivas.
+                    Instâncias selecionadas, iluminação suave e trilhas sonoras imersivas.
                   </p>
                 </div>
                 <div className="p-4 rounded-xl bg-black/40 border border-zinc-800">
                   <div className="flex items-center gap-2 text-gothic-gold font-serif font-bold text-sm">
                     <Compass className="w-4 h-4 text-gothic-gold" />
-                    Natureza & Bem-Estar
+                    Diversão
                   </div>
                   <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-                    Mais do que plantas, criamos ambientes vivos para relaxar e trocar experiências.
+                    Mais do que flores, criamos ambientes vivos para relaxar e trocar experiências.
                   </p>
                 </div>
               </div>
