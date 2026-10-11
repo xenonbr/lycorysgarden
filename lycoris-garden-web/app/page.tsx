@@ -66,13 +66,13 @@ export default function HomePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                   <span className="text-[11px] uppercase tracking-widest text-lycoris-400 font-bold">
-                    Identidade Visual
+                    Lycoris Gareden
                   </span>
                   <span className="font-serif text-lg font-bold text-white">
-                    Guia Oficial da Comunidade
+                    Comunidade Oficial
                   </span>
                   <span className="text-xs text-zinc-300 mt-1">
-                    Cores, tipografia e diretrizes de harmonia no metaverso.
+                   Faça parte você tambem!
                   </span>
                 </div>
               </div>
