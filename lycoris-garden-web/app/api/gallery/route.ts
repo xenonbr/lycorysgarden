@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { supabase, supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { INITIAL_GALLERY } from '@/lib/mockData';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 let localGallery = [...INITIAL_GALLERY];
 
 export async function GET() {
@@ -60,6 +63,53 @@ export async function POST(request: Request) {
   }
 }
 
+// Rota PATCH para persistir as curtidas no banco de dados
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, action } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID da foto é obrigatório' }, { status: 400 });
+    }
+
+    const client = supabaseAdmin || supabase;
+    if (isSupabaseConfigured && client) {
+      const { data: current, error: fetchErr } = await client
+        .from('gallery_images')
+        .select('likes')
+        .eq('id', id)
+        .single();
+
+      if (!fetchErr && current) {
+        const currentLikes = current.likes || 0;
+        const newLikes = action === 'unlike' ? Math.max(0, currentLikes - 1) : currentLikes + 1;
+
+        const { data, error } = await client
+          .from('gallery_images')
+          .update({ likes: newLikes })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (!error && data) {
+          return NextResponse.json({ success: true, likes: data.likes });
+        }
+      }
+    }
+
+    const item = localGallery.find((g) => g.id === id);
+    if (item) {
+      item.likes = action === 'unlike' ? Math.max(0, item.likes - 1) : item.likes + 1;
+      return NextResponse.json({ success: true, likes: item.likes });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Erro ao atualizar curtidas' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -71,10 +121,8 @@ export async function DELETE(request: Request) {
 
     const client = supabaseAdmin || supabase;
     if (isSupabaseConfigured && client) {
-      // 1. Remove primeiro os comentários da foto para não travar na chave estrangeira
       await client.from('comments').delete().eq('image_id', id);
 
-      // 2. Remove a imagem com privilégio administrativo (service_role)
       const { error } = await client.from('gallery_images').delete().eq('id', id);
       if (error) {
         console.error('Erro Supabase ao excluir foto:', error);
