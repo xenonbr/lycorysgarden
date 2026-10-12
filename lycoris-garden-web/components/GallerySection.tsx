@@ -15,6 +15,16 @@ export default function GallerySection() {
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    // Carrega do navegador quais fotos este visitante já curtiu
+    try {
+      const savedLikes = localStorage.getItem('lycoris_liked_photos');
+      if (savedLikes) {
+        setLikedMap(JSON.parse(savedLikes));
+      }
+    } catch (err) {
+      console.warn('Erro ao ler curtidas do localStorage:', err);
+    }
+
     async function loadGallery() {
       try {
         setLoading(true);
@@ -54,17 +64,59 @@ export default function GallerySection() {
     setNewComment('');
   };
 
-  const handleLike = (id: string, e: React.MouseEvent) => {
+  // Gerenciamento de curtidas com sincronização no Supabase e no localStorage
+  const handleLike = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setLikedMap((prev) => {
-      const isLiked = !prev[id];
-      setImages((current) =>
-        current.map((item) =>
-          item.id === id ? { ...item, likes: item.likes + (isLiked ? 1 : -1) } : item
-        )
+
+    const isCurrentlyLiked = Boolean(likedMap[id]);
+    const willBeLiked = !isCurrentlyLiked;
+
+    // 1. Grava no navegador do usuário
+    const newLikedMap = { ...likedMap, [id]: willBeLiked };
+    setLikedMap(newLikedMap);
+    try {
+      localStorage.setItem('lycoris_liked_photos', JSON.stringify(newLikedMap));
+    } catch (err) {
+      console.warn('Erro ao salvar no localStorage:', err);
+    }
+
+    // 2. Atualiza a tela instantaneamente
+    setImages((current) =>
+      current.map((item) =>
+        item.id === id
+          ? { ...item, likes: Math.max(0, item.likes + (willBeLiked ? 1 : -1)) }
+          : item
+      )
+    );
+
+    if (activeImage && activeImage.id === id) {
+      setActiveImage((prev) =>
+        prev ? { ...prev, likes: Math.max(0, prev.likes + (willBeLiked ? 1 : -1)) } : null
       );
-      return { ...prev, [id]: isLiked };
-    });
+    }
+
+    // 3. Salva a nova contagem no banco de dados Supabase
+    try {
+      const res = await fetch('/api/gallery', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          action: willBeLiked ? 'like' : 'unlike',
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result && typeof result.likes === 'number') {
+          setImages((current) =>
+            current.map((item) => (item.id === id ? { ...item, likes: result.likes } : item))
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Falha ao sincronizar curtida com o servidor:', err);
+    }
   };
 
   const handleAddComment = async (e: React.FormEvent) => {
@@ -149,7 +201,6 @@ export default function GallerySection() {
                 />
               </div>
 
-              {/* Overlay limpo sem exibir o nome do arquivo */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 flex flex-col justify-end">
                 <span className="text-xs text-lycoris-400 font-medium">
                   {img.vrchat_world || 'Lycoris Garden Sanctuary'}
@@ -164,7 +215,7 @@ export default function GallerySection() {
                     className="flex items-center gap-1.5 text-xs text-zinc-300 hover:text-lycoris-400 transition-colors"
                   >
                     <Heart
-                      className={`w-4 h-4 ${
+                      className={`w-4 h-4 transition-colors ${
                         likedMap[img.id] ? 'fill-lycoris-500 text-lycoris-500' : 'text-zinc-400'
                       }`}
                     />
@@ -223,7 +274,7 @@ export default function GallerySection() {
                       className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 hover:border-lycoris-600/50 text-xs text-zinc-300 transition-colors"
                     >
                       <Heart
-                        className={`w-3.5 h-3.5 ${
+                        className={`w-3.5 h-3.5 transition-colors ${
                           likedMap[activeImage.id] ? 'fill-lycoris-500 text-lycoris-500' : 'text-zinc-400'
                         }`}
                       />
